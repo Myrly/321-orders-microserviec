@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { Order } from './schemas/order.schema';
@@ -7,6 +7,7 @@ import { CreateOrderDto } from './dtos/create-order.dto';
 import { OrderStatus } from './enum/order-status.enum';
 import { OrderEntity } from './entity/order.entity';
 import { v4 as uuidv4 } from 'uuid';
+import { UpdateOrderStatusDto } from './dtos/update-order-status.dto';
 
 @Injectable()
 export class AppService {
@@ -35,6 +36,13 @@ export class AppService {
 
   async findOne(id: string) {
     return this.orderModel.findOne({ id: id }).select('-_id').exec();
+  }
+
+  async updateStatus(updateOrderStatusDto: UpdateOrderStatusDto) {
+    let existingOrder = await this.orderModel.findOne({ id: updateOrderStatusDto.id }).exec();
+    if (!existingOrder) throw new NotFoundException(`No order found with id :${updateOrderStatusDto.id}`);
+    existingOrder.status = updateOrderStatusDto.status;
+    return existingOrder.save();
   }
 
   private calculateOrderProductsTotalPrice(orderProducts: OrderProductEntity[]): number {
