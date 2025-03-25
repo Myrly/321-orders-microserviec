@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { Order } from './schemas/order.schema';
@@ -35,12 +35,21 @@ export class AppService {
   }
 
   async findOne(id: string) {
-    return this.orderModel.findOne({ id: id }).select('-_id').exec();
+    let existingOrder = await this.orderModel.findOne({ id: id }).select('-_id').exec();
+    if (!existingOrder) throw new NotFoundException(`No order found with id: ${id}`);
+    return existingOrder;
   }
 
   async updateStatus(updateOrderStatusDto: UpdateOrderStatusDto) {
+    if (!Object.values(OrderStatus).includes(updateOrderStatusDto.status)) {
+      throw new BadRequestException(`Invalid Order Status: ${updateOrderStatusDto.status}`);
+    }
+
     let existingOrder = await this.orderModel.findOne({ id: updateOrderStatusDto.id }).exec();
-    if (!existingOrder) throw new NotFoundException(`No order found with id :${updateOrderStatusDto.id}`);
+    if (!existingOrder) {
+      throw new NotFoundException(`No order found with id: ${updateOrderStatusDto.id}`);
+    }
+
     existingOrder.status = updateOrderStatusDto.status;
     return existingOrder.save();
   }
@@ -58,9 +67,7 @@ export class AppService {
       let productPrice = httpService.get(productPriceUrl?id=product_id);
      */
 
-    return orderProducts
-      .flatMap(orderProduct => orderProduct.product_id)
-      .reduce((acc, currentValue) => acc += currentValue, 0);
+    return orderProducts.reduce((acc, orderProduct) => acc += orderProduct.productId * orderProduct.amount, 0);
   }
 
 }

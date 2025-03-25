@@ -1,3 +1,6 @@
 export enum OrderStatus {
-  "waiting", "processing", "dispatched", "canceled"
+  waiting = "waiting",
+  processing = "processing",
+  dispatched = "dispatched",
+  canceled = "canceled"
 }

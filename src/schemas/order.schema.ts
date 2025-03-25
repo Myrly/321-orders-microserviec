@@ -1,14 +1,16 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { HydratedDocument } from 'mongoose';
+import mongoose, { HydratedDocument } from 'mongoose';
 import { OrderProductEntity } from '../entity/order-product.entity';
 import { OrderStatus } from '../enum/order-status.enum';
 
 export type OrderDocument = HydratedDocument<Order>;
 
-@Schema()
+@Schema({
+  versionKey: false,
+})
 export class Order {
 
-  @Prop({ required: true, unique: true })
+  @Prop({ required: true, unique: true, type: mongoose.Types.ObjectId })
   id: string;
 
   @Prop({ required: true })
